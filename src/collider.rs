@@ -29,11 +29,11 @@ pub fn run(ctx: ColliderContext) -> ColliderResult {
         let (compressed, uncompressed) = hash_util::hash_public_key(&public_key);
 
         if ctx.addresses.contains(&compressed) {
-            info!("Found collision: {}", current_key);
+            info!("Found collision: {}", current_key.to_str_radix(16));
             found_keys.push(current_key.clone());
         }
         if ctx.addresses.contains(&uncompressed) {
-            info!("Found collision: {}", current_key);
+            info!("Found collision: {}", current_key.to_str_radix(16));
             found_keys.push(current_key.clone());
         }
 
@@ -52,7 +52,7 @@ pub fn run(ctx: ColliderContext) -> ColliderResult {
     info!(
         "{} collisions for {} at {} keys/sec",
         found_keys.len(),
-        ctx.start_inclusive,
+        ctx.start_inclusive.to_str_radix(16),
         keys_per_sec
     );
 
