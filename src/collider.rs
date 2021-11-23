@@ -64,9 +64,10 @@ mod tests {
     use super::*;
     use crate::address_file::read_addresses_file;
     use crate::wif::wif_to_private_key;
-    use num_traits::ToPrimitive;
+    use num_traits::{Num, ToPrimitive};
     use parameterized_macro::parameterized;
     use std::ops::Sub;
+    use crate::btc_address;
 
     #[test]
     fn puzzle_transactions() {
@@ -110,25 +111,49 @@ mod tests {
         assert_eq!(2, addresses.len());
 
         let private_key = wif_to_private_key(wif);
-
-        let search_space: u32 = 10;
-        let search_space = BigUint::from(search_space);
-        let start_inclusive = BigUint::from_bytes_be(&private_key).sub(&search_space);
-        let end_exclusive = BigUint::from_bytes_be(&private_key).add(&search_space);
-
-        let ctx = ColliderContext {
-            start_inclusive,
-            end_exclusive,
-            addresses: &addresses,
-            secp: &Secp256k1::new(),
-        };
-
-        let result = run(ctx);
+        let result = run_collider_test(BigUint::from_bytes_be(&private_key), &addresses);
 
         assert_eq!(2, result.found_keys.len());
 
         let private_key = BigUint::from_bytes_be(&private_key);
         assert_eq!(private_key, *result.found_keys.get(0).unwrap());
         assert_eq!(private_key, *result.found_keys.get(1).unwrap());
+    }
+
+    fn run_collider_test(private_key: BigUint, addresses: &HashSet<[u8; 20]>) -> ColliderResult {
+        let search_space: u32 = 5;
+        let search_space = BigUint::from(search_space);
+        let start_inclusive = private_key.clone().sub(&search_space);
+        let end_exclusive = private_key.add(&search_space);
+
+        let ctx = ColliderContext {
+            start_inclusive,
+            end_exclusive,
+            addresses,
+            secp: &Secp256k1::new(),
+        };
+
+        run(ctx)
+    }
+
+    #[parameterized( hex_key = {
+    "e006ce0cd8acb8a99a721a92e6c23671e8490477e18274bfd2f18eebb20c71a8",
+    "bdb70c7043798cc7d717a32a64ff597839bc2ed1a83c5a4eaa5873c83cefb589",
+    "f2afe7fc3d6e219652a736e33f84eac2dd0f8558a0d4177c3924d43fce5902ac",
+    }, address = {
+    "bc1qfxxmpaq6khkjfd5t5a8l37x5c6fs6prny7xyh7",
+    "bc1q0vww3g0w2325jwft3ypr95edy6nz3na9kw7eum",
+    "bc1qa3kkplcah8jrn7uj0xjrvydhpmx3cxqw3uzx45",
+    })]
+    fn segwit(hex_key: &str, address: &str) {
+        let mut addresses = HashSet::new();
+        addresses.insert(btc_address::p2wpkh_address_to_160_bit_hash(&address));
+        let key = BigUint::from_str_radix(&hex_key, 16).unwrap();
+
+        let result = run_collider_test(key.clone(), &addresses);
+
+        assert_eq!(1, result.found_keys.len());
+        assert_eq!(key, *result.found_keys.get(0).unwrap());
+        assert_eq!(hex_key, result.found_keys.get(0).unwrap().to_str_radix(16));
     }
 }
