@@ -90,7 +90,7 @@ mod tests {
 
         assert_eq!(5, result.found_keys.len());
         let expected: [u32; 5] = [7, 8, 21, 49, 76];
-        for i in 0..4 {
+        for i in 0..5 {
             assert_eq!(
                 expected[i],
                 result.found_keys.get(i).unwrap().to_u32().unwrap()
