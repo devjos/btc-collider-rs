@@ -63,11 +63,11 @@ pub fn run(ctx: ColliderContext) -> ColliderResult {
 mod tests {
     use super::*;
     use crate::address_file::read_addresses_file;
+    use crate::btc_address;
     use crate::wif::wif_to_private_key;
     use num_traits::{Num, ToPrimitive};
     use parameterized_macro::parameterized;
     use std::ops::Sub;
-    use crate::btc_address;
 
     #[test]
     fn puzzle_transactions() {
