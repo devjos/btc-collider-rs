@@ -1,3 +1,4 @@
+use crate::search_space::SearchSpace;
 use crate::{hash_util, key_util};
 use log::info;
 use num_bigint::BigUint;
@@ -8,22 +9,22 @@ use std::ops::{Add, Sub};
 use std::time::SystemTime;
 
 pub struct ColliderContext<'a> {
-    pub start_inclusive: BigUint,
-    pub end_exclusive: BigUint,
+    pub search_space: SearchSpace,
     pub addresses: &'a HashSet<[u8; 20]>,
     pub secp: &'a Secp256k1<All>,
 }
 
 pub struct ColliderResult {
+    pub search_space: SearchSpace,
     pub found_keys: Vec<BigUint>,
 }
 
 pub fn run(ctx: ColliderContext) -> ColliderResult {
-    let mut current_key = ctx.start_inclusive.clone();
+    let mut current_key = ctx.search_space.start_inclusive.clone();
     let mut found_keys: Vec<BigUint> = Vec::new();
 
     let start_time = SystemTime::now();
-    while current_key.le(&ctx.end_exclusive) {
+    while current_key.le(&ctx.search_space.end_exclusive) {
         let public_key =
             key_util::get_public_key_from_private_key_vec(current_key.to_bytes_be(), &ctx.secp);
         let (compressed, uncompressed) = hash_util::hash_public_key(&public_key);
@@ -43,8 +44,10 @@ pub fn run(ctx: ColliderContext) -> ColliderResult {
     let time_taken = end_time.duration_since(start_time).unwrap().as_secs() + 1;
 
     let keys_per_sec = ctx
+        .search_space
         .end_exclusive
-        .sub(&ctx.start_inclusive)
+        .clone()
+        .sub(&ctx.search_space.start_inclusive.clone())
         .to_u64()
         .unwrap()
         / time_taken;
@@ -52,11 +55,14 @@ pub fn run(ctx: ColliderContext) -> ColliderResult {
     info!(
         "{} collisions for {} at {} keys/sec",
         found_keys.len(),
-        ctx.start_inclusive.to_str_radix(16),
+        ctx.search_space.start_inclusive.to_str_radix(16),
         keys_per_sec
     );
 
-    ColliderResult { found_keys }
+    ColliderResult {
+        search_space: ctx.search_space,
+        found_keys,
+    }
 }
 
 #[cfg(test)]
@@ -80,8 +86,10 @@ mod tests {
         let end_exclusive = BigUint::from(end_exclusive);
 
         let ctx = ColliderContext {
-            start_inclusive,
-            end_exclusive,
+            search_space: SearchSpace {
+                start_inclusive,
+                end_exclusive,
+            },
             addresses: &addresses,
             secp: &Secp256k1::new(),
         };
@@ -127,8 +135,10 @@ mod tests {
         let end_exclusive = private_key.add(&search_space);
 
         let ctx = ColliderContext {
-            start_inclusive,
-            end_exclusive,
+            search_space: SearchSpace {
+                start_inclusive,
+                end_exclusive,
+            },
             addresses,
             secp: &Secp256k1::new(),
         };
