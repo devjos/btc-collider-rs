@@ -1,4 +1,4 @@
-use bech32::{u5, Variant};
+use bech32::{u5};
 use num_bigint::BigUint;
 
 #[derive(PartialEq)]

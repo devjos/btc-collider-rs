@@ -21,10 +21,9 @@ impl FileSearchSpaceProvider {
     pub fn new(file: &'static str) -> FileSearchSpaceProvider {
         let mut done = BTreeSet::new();
 
-        let f = File::open(&file);
-        match f {
-            Ok(_) => {
-                for line in io::BufReader::new(f.unwrap()).lines() {
+        match File::open(&file) {
+            Ok(f) => {
+                for line in io::BufReader::new(f).lines() {
                     let search_space = SearchSpace::from_line(&line.unwrap());
                     done.insert(search_space);
                 }
