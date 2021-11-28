@@ -34,6 +34,7 @@ fn main() {
     )));
 
     let mut thread_handles = Vec::new();
+    info!("Start {} collider threads", NUM_THREADS);
     for _ in 0..NUM_THREADS {
         let hashes = hashes.clone();
         let secp = secp.clone();

@@ -1,4 +1,4 @@
-use bech32::u5;
+use bech32::{u5, Variant};
 use num_bigint::BigUint;
 
 #[derive(PartialEq)]
@@ -31,8 +31,10 @@ pub fn get_address_type(address: &str) -> BTCAddressType {
 pub fn p2wpkh_address_to_160_bit_hash(address: &str) -> [u8; 20] {
     let (_hrp, data, _variant) = bech32::decode(address).unwrap();
     let data: Vec<u5> = data;
-    assert_eq!(33, data.len());
-    let converted: Vec<u8> = data.iter().map(|e| e.to_u8()).collect();
+    if data.len() != 33 {
+        panic!("Cannot read p2wpkh address {}", address);
+    }
+    let converted: Vec<u8> = data[1..33].iter().map(|e| e.to_u8()).collect();
 
     let u8 = BigUint::from_radix_be(converted.as_slice(), 32)
         .unwrap()
@@ -45,7 +47,10 @@ pub fn p2wpkh_address_to_160_bit_hash(address: &str) -> [u8; 20] {
 
 pub fn p2pk_address_to_160_bit_hash(address: &str) -> [u8; 20] {
     let decoded = bs58::decode(address).into_vec().unwrap();
-    assert_eq!(25, decoded.len());
+    if decoded.len() != 25 {
+        panic!("Cannot read p2pk address {}", address);
+    }
+
     let mut hash: [u8; 20] = [0; 20];
     hash.copy_from_slice(&decoded[1..21]);
     hash
@@ -93,12 +98,16 @@ mod tests {
         );
     }
 
-    #[test]
-    fn can_get_hash_from_bech32() {
-        let bech32_address = "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4";
-
-        let actual = p2wpkh_address_to_160_bit_hash(&bech32_address);
-        let expected = BigUint::from_str_radix("751e76e8199196d454941c45d1b3a323f1433bd6", 16)
+    #[parameterized(address = {
+    "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4", //bech32
+    "bc1pm9jzmujvdqjj6y28hptk859zs3yyv78hlz84pm", //bech32m
+    }, expected_hash = {
+    "751e76e8199196d454941c45d1b3a323f1433bd6",
+    "d9642df24c68252d1147b85763d0a284484678f7",
+    })]
+    fn can_get_hash_from_bech32(address: &str, expected_hash: &str) {
+        let actual = p2wpkh_address_to_160_bit_hash(&address);
+        let expected = BigUint::from_str_radix(&expected_hash, 16)
             .unwrap()
             .to_bytes_be();
 
