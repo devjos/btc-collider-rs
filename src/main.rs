@@ -1,4 +1,5 @@
 #![feature(slice_as_chunks)]
+#![feature(map_first_last)]
 
 mod address_file;
 mod btc_address;
@@ -8,7 +9,7 @@ mod key_util;
 mod search_space;
 mod wif;
 
-use crate::search_space::random_search_space_provider::RandomSearchSpaceProvider;
+use crate::search_space::file_search_space_provider::FileSearchSpaceProvider;
 use crate::search_space::SearchSpaceProvider;
 use log::{debug, info, LevelFilter};
 use ripemd160::digest::Output;
@@ -28,7 +29,9 @@ fn main() {
     let hashes = address_file::read_addresses_file("addresses/latest.txt.gz");
     let hashes = Arc::new(RwLock::new(hashes));
     let secp = Arc::new(RwLock::new(Secp256k1::new()));
-    let search_space_provider = Arc::new(RwLock::new(RandomSearchSpaceProvider::new()));
+    let search_space_provider = Arc::new(RwLock::new(FileSearchSpaceProvider::new(
+        "searchspace/done.txt",
+    )));
 
     let mut thread_handles = Vec::new();
     for _ in 0..NUM_THREADS {
@@ -37,7 +40,7 @@ fn main() {
         let search_space_provider = search_space_provider.clone();
         thread_handles.push(thread::spawn(move || {
             let hashes = hashes.read().unwrap();
-            let search_space = search_space_provider.read().unwrap().next();
+            let search_space = search_space_provider.write().unwrap().next();
             let ctx = collider::ColliderContext {
                 search_space,
                 addresses: &hashes,

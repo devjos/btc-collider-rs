@@ -12,7 +12,7 @@ impl RandomSearchSpaceProvider {
 }
 
 impl SearchSpaceProvider for RandomSearchSpaceProvider {
-    fn next(&self) -> SearchSpace {
+    fn next(&mut self) -> SearchSpace {
         let mut rng = rand::thread_rng();
         let start_inclusive: BigUint = rng.gen_biguint(256);
         let number_of_keys: u64 = 0_800_000;
