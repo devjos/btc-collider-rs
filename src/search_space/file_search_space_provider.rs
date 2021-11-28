@@ -115,7 +115,7 @@ impl SearchSpaceProvider for FileSearchSpaceProvider {
             end_exclusive: start_inclusive.clone().add(&self.interval),
         };
         self.pending.insert(search_space.clone());
-        debug!("Created next SearchSpace={}", search_space);
+        debug!("Created next search space {}", search_space);
         search_space
     }
 

@@ -54,7 +54,13 @@ fn main() {
                 .unwrap()
                 .done(&result.search_space);
 
-            info!("foundKeys={:?}", result.found_keys);
+            for found_key in result.found_keys {
+                info!(
+                    "Collision found. Key {} in {}",
+                    found_key.to_str_radix(16),
+                    result.search_space
+                );
+            }
         }));
     }
 
