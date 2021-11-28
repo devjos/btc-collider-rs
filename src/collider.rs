@@ -55,7 +55,7 @@ pub fn run(ctx: ColliderContext) -> ColliderResult {
     info!(
         "{} collisions for {} at {} keys/sec",
         found_keys.len(),
-        ctx.search_space.start_inclusive.to_str_radix(16),
+        ctx.search_space,
         keys_per_sec
     );
 
