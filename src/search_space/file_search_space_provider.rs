@@ -158,11 +158,11 @@ mod tests {
 
         let mut f = File::create(&file).unwrap();
         f.write("4-b".as_bytes()).unwrap();
+        f.sync_all().unwrap();
 
         let mut prov = FileSearchSpaceProvider::new(&file);
         let search_space = prov.next();
-        assert_eq!("b", search_space.start_inclusive.to_str_radix(16));
-        assert_eq!("f424b", search_space.end_exclusive.to_str_radix(16));
+        assert_eq!("b-f424b", search_space.to_string());
 
         prov.done(&search_space);
 
