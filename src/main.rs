@@ -19,8 +19,6 @@ use std::fs::File;
 use std::sync::{Arc, RwLock};
 use std::thread;
 
-const NUM_THREADS: u32 = 4;
-
 fn main() {
     init_logging();
 
@@ -34,8 +32,9 @@ fn main() {
     )));
 
     let mut thread_handles = Vec::new();
-    info!("Start {} collider threads", NUM_THREADS);
-    for _ in 0..NUM_THREADS {
+    let num_threads = num_cpus::get();
+    info!("Start {} collider threads", num_threads);
+    for _ in 0..num_threads {
         let hashes = hashes.clone();
         let secp = secp.clone();
         let search_space_provider = search_space_provider.clone();
