@@ -12,7 +12,6 @@ mod wif;
 use crate::search_space::file_search_space_provider::FileSearchSpaceProvider;
 use crate::search_space::SearchSpaceProvider;
 use log::{debug, info, LevelFilter};
-use ripemd160::digest::Output;
 use secp256k1::Secp256k1;
 use simplelog::{ColorChoice, CombinedLogger, Config, TermLogger, TerminalMode, WriteLogger};
 use std::fs::File;

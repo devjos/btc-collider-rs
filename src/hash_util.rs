@@ -1,5 +1,5 @@
-use crate::Output;
-use ripemd160::Ripemd160;
+use ripemd::digest::Output;
+use ripemd::Ripemd160;
 use secp256k1::PublicKey;
 use sha2::{Digest, Sha256};
 
