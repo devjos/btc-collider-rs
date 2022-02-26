@@ -11,6 +11,7 @@ mod wif;
 
 use crate::search_space::file_search_space_provider::FileSearchSpaceProvider;
 use crate::search_space::SearchSpaceProvider;
+use chrono::{DateTime, Utc};
 use log::{debug, info, LevelFilter};
 use secp256k1::Secp256k1;
 use simplelog::{ColorChoice, CombinedLogger, Config, TermLogger, TerminalMode, WriteLogger};
@@ -32,7 +33,7 @@ fn main() {
 
     let mut thread_handles = Vec::new();
     let num_threads = num_cpus::get();
-    info!("Start {} collider threads", num_threads);
+    debug!("Start {} collider threads", num_threads);
     for _ in 0..num_threads {
         let hashes = hashes.clone();
         let secp = secp.clone();
@@ -70,6 +71,9 @@ fn main() {
 }
 
 fn init_logging() {
+    let now: DateTime<Utc> = Utc::now();
+    let log_file = format!("log/{}.log", now.format("%Y-%m-%dT%H%M%S"));
+
     CombinedLogger::init(vec![
         TermLogger::new(
             LevelFilter::Debug,
@@ -80,7 +84,7 @@ fn init_logging() {
         WriteLogger::new(
             LevelFilter::Info,
             Config::default(),
-            File::create("btc-collider-rs.log").unwrap(),
+            File::create(log_file).unwrap(),
         ),
     ])
     .unwrap();
