@@ -157,7 +157,6 @@ mod tests {
 
         let mut f = File::create(&file).unwrap();
         f.write("4-b".as_bytes()).unwrap();
-        f.sync_all().unwrap();
 
         let mut prov = FileSearchSpaceProvider::new(&file);
         let search_space = prov.next();
@@ -173,7 +172,7 @@ mod tests {
 
     #[test]
     fn can_correctly_merge() {
-        let file = "searchspace/space.update.txt";
+        let file = "searchspace/space.merge.txt";
         std::fs::write(&file, "4-b").unwrap();
 
         let mut p = FileSearchSpaceProvider::new(file);
