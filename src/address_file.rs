@@ -1,7 +1,7 @@
 use crate::btc_address;
 use crate::btc_address::BTCAddressType;
 use flate2::read::GzDecoder;
-use log::debug;
+use log::{debug, info};
 use std::collections::HashSet;
 use std::fs::File;
 use std::io;
@@ -35,7 +35,12 @@ pub fn read_addresses_file(file_name: &str) -> HashSet<[u8; 20]> {
     let end_time = SystemTime::now();
     let time_taken = end_time.duration_since(start_time).unwrap().as_secs_f32();
 
-    debug!("Read address file {} in {:.2}s", file_name, time_taken);
+    info!(
+        "Read {} bitcoin-addresses from {} in {:.2}s",
+        addresses_set.len(),
+        file_name,
+        time_taken
+    );
     debug!(
         "Addresses set elements={}, capacity={}",
         addresses_set.len(),
