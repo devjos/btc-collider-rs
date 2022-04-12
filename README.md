@@ -5,7 +5,7 @@
 The Bitcoin address collider
 1. generates public/private keys
 2. derives the corresponding wallet addresses
-3. determines if the wallet address has been used
+3. determines if the address has been used
 
 ## How
 TODO
