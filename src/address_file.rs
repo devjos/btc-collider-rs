@@ -8,10 +8,22 @@ use std::io;
 use std::io::{BufRead, Read};
 use std::time::SystemTime;
 
+#[derive(Debug, Default)]
+struct AddressCount {
+    p2pk: u64,
+    p2sh: u64,
+    p2wpkh: u64,
+    p2wsh: u64,
+    misc: u64,
+}
+
 pub fn read_addresses_file(file_name: &str) -> HashSet<[u8; 20]> {
     let file = File::open(file_name).unwrap();
 
     let reader: Box<dyn Read> = Box::new(GzDecoder::new(file));
+    let mut address_count = AddressCount {
+        ..Default::default()
+    };
 
     let mut addresses_set = HashSet::new();
     //let mut addresses_set = HashSet::with_capacity(117440512);
@@ -22,14 +34,25 @@ pub fn read_addresses_file(file_name: &str) -> HashSet<[u8; 20]> {
         let address_type = btc_address::get_address_type(line);
         match address_type {
             BTCAddressType::P2PK => {
+                address_count.p2pk += 1;
                 addresses_set.insert(btc_address::p2pk_address_to_160_bit_hash(line))
             }
-            BTCAddressType::P2SH => false,
+            BTCAddressType::P2SH => {
+                address_count.p2sh += 1;
+                false
+            }
             BTCAddressType::P2WPKH => {
+                address_count.p2wpkh += 1;
                 addresses_set.insert(btc_address::p2wpkh_address_to_160_bit_hash(line))
             }
-            BTCAddressType::P2WSH => false,
-            BTCAddressType::MISC => false,
+            BTCAddressType::P2WSH => {
+                address_count.p2wsh += 1;
+                false
+            }
+            BTCAddressType::MISC => {
+                address_count.misc += 1;
+                false
+            }
         };
     }
     let end_time = SystemTime::now();
@@ -41,6 +64,7 @@ pub fn read_addresses_file(file_name: &str) -> HashSet<[u8; 20]> {
         file_name,
         time_taken
     );
+    debug!("{:#?}", address_count);
     debug!(
         "Addresses set elements={}, capacity={}",
         addresses_set.len(),
