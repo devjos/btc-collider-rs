@@ -3,6 +3,7 @@ use crate::{hash_util, key_util};
 use log::info;
 use num_bigint::BigUint;
 use num_traits::{One, ToPrimitive};
+use primitive_types::H160;
 use secp256k1::{All, Secp256k1};
 use std::collections::HashSet;
 use std::ops::{Add, Sub};
@@ -10,7 +11,7 @@ use std::time::SystemTime;
 
 pub struct ColliderContext<'a> {
     pub search_space: SearchSpace,
-    pub addresses: &'a HashSet<[u8; 20]>,
+    pub addresses: &'a HashSet<H160>,
     pub secp: &'a Secp256k1<All>,
 }
 
@@ -128,7 +129,7 @@ mod tests {
         assert_eq!(private_key, *result.found_keys.get(1).unwrap());
     }
 
-    fn run_collider_test(private_key: BigUint, addresses: &HashSet<[u8; 20]>) -> ColliderResult {
+    fn run_collider_test(private_key: BigUint, addresses: &HashSet<H160>) -> ColliderResult {
         let search_space: u32 = 5;
         let search_space = BigUint::from(search_space);
         let start_inclusive = private_key.clone().sub(&search_space);

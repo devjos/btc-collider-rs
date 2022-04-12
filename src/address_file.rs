@@ -2,6 +2,7 @@ use crate::btc_address;
 use crate::btc_address::BTCAddressType;
 use flate2::read::GzDecoder;
 use log::{debug, info};
+use primitive_types::H160;
 use std::collections::HashSet;
 use std::fs::File;
 use std::io;
@@ -17,7 +18,7 @@ struct AddressCount {
     misc: u64,
 }
 
-pub fn read_addresses_file(file_name: &str) -> HashSet<[u8; 20]> {
+pub fn read_addresses_file(file_name: &str) -> HashSet<H160> {
     let file = File::open(file_name).unwrap();
 
     let reader: Box<dyn Read> = Box::new(GzDecoder::new(file));

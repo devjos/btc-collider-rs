@@ -1,5 +1,6 @@
 use bech32::u5;
 use num_bigint::BigUint;
+use primitive_types::H160;
 
 #[derive(PartialEq)]
 pub enum BTCAddressType {
@@ -28,7 +29,7 @@ pub fn get_address_type(address: &str) -> BTCAddressType {
     BTCAddressType::MISC
 }
 
-pub fn p2wpkh_address_to_160_bit_hash(address: &str) -> [u8; 20] {
+pub fn p2wpkh_address_to_160_bit_hash(address: &str) -> H160 {
     let (_hrp, data, _variant) = bech32::decode(address).unwrap();
     let data: Vec<u5> = data;
     if data.len() != 33 {
@@ -42,18 +43,16 @@ pub fn p2wpkh_address_to_160_bit_hash(address: &str) -> [u8; 20] {
     let mut hash: [u8; 20] = [0; 20];
     let start_index = 20 - u8.len();
     hash[start_index..20].copy_from_slice(&u8);
-    hash
+    H160::from(hash)
 }
 
-pub fn p2pk_address_to_160_bit_hash(address: &str) -> [u8; 20] {
+pub fn p2pk_address_to_160_bit_hash(address: &str) -> H160 {
     let decoded = bs58::decode(address).into_vec().unwrap();
     if decoded.len() != 25 {
         panic!("Cannot read p2pk address {}", address);
     }
 
-    let mut hash: [u8; 20] = [0; 20];
-    hash.copy_from_slice(&decoded[1..21]);
-    hash
+    H160::from_slice(&decoded[1..21])
 }
 
 #[cfg(test)]
@@ -107,9 +106,12 @@ mod tests {
     })]
     fn can_get_hash_from_bech32(address: &str, expected_hash: &str) {
         let actual = p2wpkh_address_to_160_bit_hash(&address);
-        let expected = BigUint::from_str_radix(&expected_hash, 16)
-            .unwrap()
-            .to_bytes_be();
+        let expected = H160::from_slice(
+            BigUint::from_str_radix(&expected_hash, 16)
+                .unwrap()
+                .to_bytes_be()
+                .as_slice(),
+        );
 
         assert_eq!(expected, actual);
     }
