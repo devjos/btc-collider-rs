@@ -62,6 +62,7 @@ mod tests {
     use num_traits::Num;
     use parameterized_macro::parameterized;
     use secp256k1::Secp256k1;
+    use std::str::FromStr;
 
     #[test]
     fn can_return_address_type() {
@@ -100,18 +101,15 @@ mod tests {
     #[parameterized(address = {
     "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4", //bech32
     "bc1pm9jzmujvdqjj6y28hptk859zs3yyv78hlz84pm", //bech32m
+    "bc1qqzzcr0x26mm30v5h0r6j3pe4zkjd0hkpv8qglf", //data is only 19 bytes long
     }, expected_hash = {
     "751e76e8199196d454941c45d1b3a323f1433bd6",
     "d9642df24c68252d1147b85763d0a284484678f7",
+    "008581bccad6f717b29778f528873515a4d7dec1",
     })]
     fn can_get_hash_from_bech32(address: &str, expected_hash: &str) {
         let actual = p2wpkh_address_to_160_bit_hash(&address);
-        let expected = H160::from_slice(
-            BigUint::from_str_radix(&expected_hash, 16)
-                .unwrap()
-                .to_bytes_be()
-                .as_slice(),
-        );
+        let expected = H160::from_str(expected_hash).unwrap();
 
         assert_eq!(expected, actual);
     }

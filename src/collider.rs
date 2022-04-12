@@ -70,8 +70,8 @@ pub fn run(ctx: ColliderContext) -> ColliderResult {
 mod tests {
     use super::*;
     use crate::address_file::read_addresses_file;
-    use crate::btc_address;
     use crate::wif::wif_to_private_key;
+    use crate::{btc_address, wif};
     use num_traits::{Num, ToPrimitive};
     use parameterized_macro::parameterized;
     use std::ops::Sub;
@@ -166,5 +166,28 @@ mod tests {
         assert_eq!(1, result.found_keys.len());
         assert_eq!(key, *result.found_keys.get(0).unwrap());
         assert_eq!(hex_key, result.found_keys.get(0).unwrap().to_str_radix(16));
+    }
+
+    #[parameterized( wif = {
+    "KzNAqFvXDbxBwqHAgjVRZ91JW2TiJoGiqhECPywEbGAy6sPHxuZu",
+    "Kx5wBqo2tSurrBG6JUGN21Y4fZcr7Kk7pU6SYURaLQch632smxDB",
+    "L3h41LG9wora1onggMK4AhRVRCbvJUTxBS68fMLJyEaj2mTvbw1z",
+    "L4WJoCREc8JdiU3YrU5NptiT7T44atcH7yA5CC6gXaXBwqnrX6MV",
+    }, address = {
+    "bc1qexq9hf40892cwnkxa84rnvqfk36fmzys9n9quq",
+    "bc1qhrzgyz49gtx5fkfqcu7kwlw2c8se5cklam4ap2",
+    "bc1qz7d38k4lve2zxc50kap7k5v7lqz6q9mc5kek32",
+    "bc1qqqq49mw5zp95ps4d0kr4cqaa7cuv47r6adhk43"
+    })]
+    fn segwit_from_wif(wif: &str, address: &str) {
+        let mut addresses = HashSet::new();
+        addresses.insert(btc_address::p2wpkh_address_to_160_bit_hash(&address));
+        let key = BigUint::from_bytes_be(&wif::wif_to_private_key(wif));
+
+        let result = run_collider_test(key.clone(), &addresses);
+
+        assert_eq!(1, result.found_keys.len());
+        assert_eq!(key, *result.found_keys.get(0).unwrap());
+        //assert_eq!(hex_key, result.found_keys.get(0).unwrap().to_str_radix(16));
     }
 }
