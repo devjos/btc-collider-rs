@@ -7,6 +7,7 @@ edition = "2021"
 bech32 = "0.8"
 bs58 = "0.4"
 chrono = "0.4"
+clap = { version = "3.1.8", features = ["derive"] }
 flate2 = "1.0"
 log = "0.4"
 num-bigint = { version = "0.4", features = ["rand"] }

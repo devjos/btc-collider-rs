@@ -11,7 +11,7 @@ pub struct SearchSpace {
     pub end_exclusive: BigUint,
 }
 
-pub trait SearchSpaceProvider {
+pub trait SearchSpaceProvider: Sync + Send {
     fn next(&mut self) -> SearchSpace;
     fn done(&mut self, search_space: &SearchSpace);
 }

@@ -15,8 +15,6 @@ pub struct FileSearchSpaceProvider {
     file: String,
 }
 
-pub struct RandomSearchSpaceProvider {}
-
 impl FileSearchSpaceProvider {
     pub fn new(file: &'static str) -> FileSearchSpaceProvider {
         let mut done = BTreeSet::new();

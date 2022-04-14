@@ -10,8 +10,10 @@ mod search_space;
 mod wif;
 
 use crate::search_space::file_search_space_provider::FileSearchSpaceProvider;
+use crate::search_space::random_search_space_provider::RandomSearchSpaceProvider;
 use crate::search_space::SearchSpaceProvider;
 use chrono::{DateTime, Utc};
+use clap::Parser;
 use log::{debug, info, LevelFilter};
 use secp256k1::Secp256k1;
 use simplelog::{ColorChoice, CombinedLogger, Config, TermLogger, TerminalMode, WriteLogger};
@@ -19,18 +21,31 @@ use std::fs::File;
 use std::sync::{Arc, RwLock};
 use std::thread;
 
+#[derive(Parser, Debug)]
+#[clap(author, version, about, long_about = None)]
+struct Args {
+    #[clap(short, long)]
+    random: bool,
+}
+
 fn main() {
     init_logging();
+
+    let args = Args::parse();
+    let random = args.random;
 
     info!("Start btc-collider-rs");
 
     let hashes = address_file::read_addresses_file("addresses/latest.txt.gz");
     let hashes = Arc::new(RwLock::new(hashes));
     let secp = Arc::new(RwLock::new(Secp256k1::new()));
-    let search_space_provider = Arc::new(RwLock::new(FileSearchSpaceProvider::new(
-        "searchspace/done.txt",
-    )));
+    let search_space_provider: Box<dyn SearchSpaceProvider> = if random {
+        Box::new(RandomSearchSpaceProvider::new())
+    } else {
+        Box::new(FileSearchSpaceProvider::new("searchspace/done.txt"))
+    };
 
+    let search_space_provider = Arc::new(RwLock::new(search_space_provider));
     let mut thread_handles = Vec::new();
     let num_threads = num_cpus::get();
     debug!("Start {} collider threads", num_threads);

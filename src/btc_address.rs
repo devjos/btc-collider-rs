@@ -59,7 +59,6 @@ pub fn p2pk_address_to_160_bit_hash(address: &str) -> H160 {
 mod tests {
     use super::*;
     use crate::{hash_util, key_util};
-    use num_traits::Num;
     use parameterized_macro::parameterized;
     use secp256k1::Secp256k1;
     use std::str::FromStr;
