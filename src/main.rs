@@ -24,8 +24,13 @@ use std::thread;
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
 struct Args {
+    /// Search randomly
     #[clap(short, long)]
     random: bool,
+
+    /// Number of threads
+    #[clap(long, default_value_t = num_cpus::get())]
+    threads: usize,
 }
 
 fn main() {
@@ -47,9 +52,9 @@ fn main() {
 
     let search_space_provider = Arc::new(RwLock::new(search_space_provider));
     let mut thread_handles = Vec::new();
-    let num_threads = num_cpus::get();
-    debug!("Start {} collider threads", num_threads);
-    for _ in 0..num_threads {
+
+    debug!("Start {} collider threads", args.threads);
+    for _ in 0..args.threads {
         let hashes = hashes.clone();
         let secp = secp.clone();
         let search_space_provider = search_space_provider.clone();
