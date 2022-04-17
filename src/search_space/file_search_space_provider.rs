@@ -90,6 +90,15 @@ impl FileSearchSpaceProvider {
             self.done.insert(search_space.clone());
         }
     }
+
+    fn write_to_file(&self) {
+        let f = File::create(&self.file).unwrap();
+        let mut f = BufWriter::new(f);
+        for search_space in &self.done {
+            f.write(format!("{}\n", search_space).as_bytes()).unwrap();
+        }
+        f.flush().unwrap();
+    }
 }
 
 impl SearchSpaceProvider for FileSearchSpaceProvider {
@@ -123,12 +132,9 @@ impl SearchSpaceProvider for FileSearchSpaceProvider {
 
         self.add(&search_space);
 
-        let f = File::create(&self.file).unwrap();
-        let mut f = BufWriter::new(f);
-        for search_space in &self.done {
-            f.write(format!("{}\n", search_space).as_bytes()).unwrap();
+        if self.done.len() == 1 {
+            self.write_to_file();
         }
-        f.flush().unwrap();
     }
 }
 
@@ -181,6 +187,7 @@ mod tests {
         assert_eq!("f424b-1e848b", s2.to_string());
 
         p.done(&s2);
+        p.write_to_file();
         let file_content = std::fs::read_to_string(&file).unwrap();
         let lines: Vec<&str> = file_content.lines().collect();
         assert_eq!(2, lines.len());
