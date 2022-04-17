@@ -36,7 +36,7 @@ struct Args {
     #[clap(long, default_value_t = num_cpus::get())]
     threads: usize,
 
-    /// Run with time limit
+    /// Run with time limit (in minutes)
     #[clap(short, long)]
     timeout: Option<u64>,
 }
