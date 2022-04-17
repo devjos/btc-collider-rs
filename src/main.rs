@@ -15,11 +15,15 @@ use crate::search_space::SearchSpaceProvider;
 use chrono::{DateTime, Utc};
 use clap::Parser;
 use log::{debug, info, LevelFilter};
-use secp256k1::Secp256k1;
+use primitive_types::H160;
+use secp256k1::{All, Secp256k1};
 use simplelog::{ColorChoice, CombinedLogger, Config, TermLogger, TerminalMode, WriteLogger};
+use std::collections::HashSet;
 use std::fs::File;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, RwLock};
 use std::thread;
+use std::time::Duration;
 
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
@@ -31,6 +35,10 @@ struct Args {
     /// Number of threads
     #[clap(long, default_value_t = num_cpus::get())]
     threads: usize,
+
+    /// Run with time limit
+    #[clap(short, long)]
+    timeout: Option<u64>,
 }
 
 fn main() {
@@ -54,33 +62,29 @@ fn main() {
     let mut thread_handles = Vec::new();
 
     debug!("Start {} collider threads", args.threads);
+    let continue_search = Arc::new(AtomicBool::new(true));
     for _ in 0..args.threads {
         let hashes = hashes.clone();
         let secp = secp.clone();
         let search_space_provider = search_space_provider.clone();
+        let continue_search = continue_search.clone();
         thread_handles.push(thread::spawn(move || {
-            let hashes = hashes.read().unwrap();
-            let search_space = search_space_provider.write().unwrap().next();
-            let ctx = collider::ColliderContext {
-                search_space,
-                addresses: &hashes,
-                secp: &secp.read().unwrap(),
-            };
-            let result = collider::run(ctx);
-
-            search_space_provider
-                .write()
-                .unwrap()
-                .done(&result.search_space);
-
-            for found_key in result.found_keys {
-                info!(
-                    "Collision found. Key {} in {}",
-                    found_key.to_str_radix(16),
-                    result.search_space
-                );
-            }
+            run_search(hashes, secp, search_space_provider, continue_search);
         }));
+    }
+
+    match args.timeout {
+        Some(timeout) => {
+            debug!("Sleep on main thread for {} minutes", timeout);
+            thread::sleep(Duration::from_secs(timeout * 60));
+
+            debug!("Set continue to false");
+            continue_search.store(false, Ordering::Relaxed);
+        }
+        None => loop {
+            debug!("Keep running until interrupted");
+            thread::sleep(Duration::from_secs(3600));
+        },
     }
 
     debug!("Waiting for threads to finish");
@@ -88,6 +92,39 @@ fn main() {
         thread_handle.join().unwrap();
     }
     info!("Shutdown btc-collider-rs")
+}
+
+fn run_search(
+    hashes: Arc<RwLock<HashSet<H160>>>,
+    secp: Arc<RwLock<Secp256k1<All>>>,
+    search_space_provider: Arc<RwLock<Box<dyn SearchSpaceProvider>>>,
+    continue_search: Arc<AtomicBool>,
+) {
+    let hashes = hashes.read().unwrap();
+
+    while continue_search.load(Ordering::Relaxed) {
+        let search_space = search_space_provider.write().unwrap().next();
+        let ctx = collider::ColliderContext {
+            search_space,
+            addresses: &hashes,
+            secp: &secp.read().unwrap(),
+        };
+        let result = collider::run(ctx);
+
+        search_space_provider
+            .write()
+            .unwrap()
+            .done(&result.search_space);
+
+        for found_key in result.found_keys {
+            info!(
+                "Collision found. Key {} in {}",
+                found_key.to_str_radix(16),
+                result.search_space
+            );
+        }
+    }
+    debug!("Thread done");
 }
 
 fn init_logging() {
