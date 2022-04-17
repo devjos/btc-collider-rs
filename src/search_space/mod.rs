@@ -81,12 +81,14 @@ mod test {
         [1, 5, 2, 10],
         [1, 2, 5, 10],
         [1, 10, 3, 5],
+        [3, 5, 1, 10],
     }, can_merge = {
-        true, true, false, true,
+        true, true, false, true, true,
     }, expected_merge = {
         [1, 10],
         [1, 10],
         [0, 0],
+        [1, 10],
         [1, 10],
     })]
     fn can_merge(values: [u64; 4], can_merge: bool, expected_merge: [u64; 2]) {
