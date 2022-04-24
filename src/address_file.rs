@@ -3,7 +3,7 @@ use crate::btc_address::BTCAddressType;
 use flate2::read::GzDecoder;
 use log::{debug, info};
 use primitive_types::H160;
-use std::collections::HashSet;
+use hashbrown::HashSet;
 use std::fs::File;
 use std::io;
 use std::io::{BufRead, Read};
