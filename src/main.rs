@@ -18,7 +18,7 @@ use log::{debug, info, LevelFilter};
 use primitive_types::H160;
 use secp256k1::{All, Secp256k1};
 use simplelog::{ColorChoice, CombinedLogger, Config, TermLogger, TerminalMode, WriteLogger};
-use std::collections::HashSet;
+use hashbrown::HashSet;
 use std::fs::File;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, RwLock};

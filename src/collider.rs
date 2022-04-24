@@ -5,7 +5,7 @@ use num_bigint::BigUint;
 use num_traits::{One, ToPrimitive};
 use primitive_types::H160;
 use secp256k1::{All, Secp256k1};
-use std::collections::HashSet;
+use hashbrown::HashSet;
 use std::ops::{Add, Sub};
 use std::time::SystemTime;
 
