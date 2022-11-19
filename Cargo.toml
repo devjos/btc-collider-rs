@@ -7,9 +7,9 @@ edition = "2021"
 bech32 = "0.9"
 bs58 = "0.4"
 chrono = "0.4"
-clap = { version = "3.1.8", features = ["derive"] }
+clap = { version = "4.0", features = ["derive"] }
 flate2 = "1.0"
-hashbrown = "0.12"
+hashbrown = "0.13"
 log = "0.4"
 num-bigint = { version = "0.4", features = ["rand"] }
 num-traits = "0.2"
@@ -17,7 +17,7 @@ num_cpus = "1.13"
 primitive-types = "0.12"
 rand = "0.8"
 ripemd = "0.1"
-secp256k1 = "0.23"
+secp256k1 = "0.24"
 sha2 = "0.10"
 simplelog = "0.12"
 
