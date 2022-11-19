@@ -1,5 +1,4 @@
 #![feature(slice_as_chunks)]
-#![feature(map_first_last)]
 
 mod address_file;
 mod btc_address;
