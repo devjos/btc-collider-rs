@@ -1,5 +1,3 @@
-#![feature(slice_as_chunks)]
-
 mod address_file;
 mod btc_address;
 mod collider;
@@ -13,11 +11,11 @@ use crate::search_space::random_search_space_provider::RandomSearchSpaceProvider
 use crate::search_space::SearchSpaceProvider;
 use chrono::{DateTime, Utc};
 use clap::Parser;
+use hashbrown::HashSet;
 use log::{debug, info, LevelFilter};
 use primitive_types::H160;
 use secp256k1::{All, Secp256k1};
 use simplelog::{ColorChoice, CombinedLogger, Config, TermLogger, TerminalMode, WriteLogger};
-use hashbrown::HashSet;
 use std::fs::File;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, RwLock};
