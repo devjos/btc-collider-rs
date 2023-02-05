@@ -65,7 +65,7 @@ pub fn read_addresses_file(file_name: &str) -> HashSet<H160> {
         file_name,
         time_taken
     );
-    debug!("{:#?}", address_count);
+    info!("{:#?}", address_count);
     debug!(
         "Addresses set elements={}, capacity={}",
         addresses_set.len(),

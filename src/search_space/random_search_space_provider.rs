@@ -1,5 +1,4 @@
-use crate::search_space::SearchSpace;
-use crate::SearchSpaceProvider;
+use crate::search_space::{SearchSpace, SearchSpaceProvider};
 use num_bigint::{BigUint, RandBigInt};
 use std::ops::Add;
 

@@ -1,14 +1,7 @@
-mod address_file;
-mod btc_address;
-mod collider;
-mod hash_util;
-mod key_util;
-mod search_space;
-mod wif;
-
-use crate::search_space::file_search_space_provider::FileSearchSpaceProvider;
-use crate::search_space::random_search_space_provider::RandomSearchSpaceProvider;
-use crate::search_space::SearchSpaceProvider;
+use btc_collider_rs::search_space::file_search_space_provider::FileSearchSpaceProvider;
+use btc_collider_rs::search_space::random_search_space_provider::RandomSearchSpaceProvider;
+use btc_collider_rs::search_space::SearchSpaceProvider;
+use btc_collider_rs::{address_file, collider};
 use chrono::{DateTime, Utc};
 use clap::Parser;
 use hashbrown::HashSet;
@@ -58,7 +51,7 @@ fn main() {
     let search_space_provider = Arc::new(RwLock::new(search_space_provider));
     let mut thread_handles = Vec::new();
 
-    debug!("Start {} collider threads", args.threads);
+    info!("Start collider on {} threads", args.threads);
     let continue_search = Arc::new(AtomicBool::new(true));
     for _ in 0..args.threads {
         let hashes = hashes.clone();
@@ -130,7 +123,7 @@ fn init_logging() {
 
     CombinedLogger::init(vec![
         TermLogger::new(
-            LevelFilter::Debug,
+            LevelFilter::Info,
             Config::default(),
             TerminalMode::Mixed,
             ColorChoice::Auto,

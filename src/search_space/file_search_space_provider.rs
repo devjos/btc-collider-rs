@@ -1,5 +1,5 @@
 use super::SearchSpace;
-use super::SearchSpaceProvider;
+use crate::search_space::SearchSpaceProvider;
 use log::{debug, info};
 use num_bigint::{BigUint, RandBigInt};
 use std::collections::BTreeSet;
@@ -141,7 +141,7 @@ impl SearchSpaceProvider for FileSearchSpaceProvider {
 #[cfg(test)]
 mod tests {
     use crate::search_space::file_search_space_provider::FileSearchSpaceProvider;
-    use crate::SearchSpaceProvider;
+    use crate::search_space::SearchSpaceProvider;
     use num_traits::ToPrimitive;
     use std::fs::File;
     use std::io::Write;
