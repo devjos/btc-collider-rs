@@ -9,6 +9,7 @@ use secp256k1::{All, Secp256k1};
 use std::ops::{Add, Sub};
 use std::time::SystemTime;
 
+#[derive(Clone)]
 pub struct ColliderContext<'a> {
     pub search_space: SearchSpace,
     pub addresses: &'a HashSet<H160>,
@@ -48,7 +49,7 @@ pub fn run(ctx: ColliderContext) -> ColliderResult {
         .search_space
         .end_exclusive
         .clone()
-        .sub(&ctx.search_space.start_inclusive.clone())
+        .sub(&ctx.search_space.start_inclusive)
         .to_u64()
         .unwrap()
         / time_taken;
