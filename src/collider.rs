@@ -43,15 +43,16 @@ pub fn run(ctx: ColliderContext) -> ColliderResult {
         current_key = current_key.add(BigUint::one());
     }
     let end_time = SystemTime::now();
-    let time_taken = end_time.duration_since(start_time).unwrap().as_secs() + 1;
+    let time_taken = end_time.duration_since(start_time).unwrap().as_millis();
 
     let keys_per_sec = ctx
         .search_space
         .end_exclusive
         .clone()
         .sub(&ctx.search_space.start_inclusive)
-        .to_u64()
+        .to_u128()
         .unwrap()
+        * 1_000
         / time_taken;
 
     info!(
