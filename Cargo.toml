@@ -13,7 +13,7 @@ hashbrown = "0.13"
 log = "0.4"
 num-bigint = { version = "0.4", features = ["rand"] }
 num-traits = "0.2"
-num_cpus = "1.13"
+num_cpus = "1.16"
 primitive-types = "0.12"
 rand = "0.8"
 ripemd = "0.1"
