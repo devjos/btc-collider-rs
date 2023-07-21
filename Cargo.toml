@@ -9,7 +9,7 @@ bs58 = "0.5"
 chrono = "0.4"
 clap = { version = "4.3", features = ["derive"] }
 flate2 = "1.0"
-hashbrown = "0.13"
+hashbrown = "0.14"
 log = "0.4"
 num-bigint = { version = "0.4", features = ["rand"] }
 num-traits = "0.2"
@@ -23,7 +23,7 @@ simplelog = "0.12"
 
 [dev-dependencies]
 parameterized-macro = "1.0"
-criterion = "0.4"
+criterion = "0.5"
 
 [[bench]]
 name = "collider"
