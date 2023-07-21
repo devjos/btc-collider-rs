@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 bech32 = "0.9"
-bs58 = "0.4"
+bs58 = "0.5"
 chrono = "0.4"
 clap = { version = "4.0", features = ["derive"] }
 flate2 = "1.0"
