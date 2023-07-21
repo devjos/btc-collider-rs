@@ -23,7 +23,7 @@ simplelog = "0.12"
 
 [dev-dependencies]
 parameterized-macro = "1.0"
-criterion = "0.4"
+criterion = "0.5"
 
 [[bench]]
 name = "collider"
