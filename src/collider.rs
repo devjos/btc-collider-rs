@@ -1,11 +1,11 @@
 use crate::search_space::SearchSpace;
 use crate::{hash_util, key_util};
-use hashbrown::HashSet;
 use log::info;
 use num_bigint::BigUint;
 use num_traits::{One, ToPrimitive};
 use primitive_types::H160;
 use secp256k1::{All, Secp256k1};
+use std::collections::HashSet;
 use std::ops::{Add, Sub};
 use std::time::SystemTime;
 
@@ -25,6 +25,8 @@ pub fn run(ctx: ColliderContext) -> ColliderResult {
     let mut current_key = ctx.search_space.start_inclusive.clone();
     let mut found_keys: Vec<BigUint> = Vec::new();
 
+    let one = BigUint::one();
+
     let start_time = SystemTime::now();
     while current_key.le(&ctx.search_space.end_exclusive) {
         let public_key =
@@ -40,7 +42,7 @@ pub fn run(ctx: ColliderContext) -> ColliderResult {
             found_keys.push(current_key.clone());
         }
 
-        current_key = current_key.add(BigUint::one());
+        current_key = current_key.add(&one);
     }
     let end_time = SystemTime::now();
     let time_taken = end_time.duration_since(start_time).unwrap().as_millis();

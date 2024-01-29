@@ -2,9 +2,9 @@ use btc_collider_rs::collider::ColliderContext;
 use btc_collider_rs::search_space::SearchSpace;
 use btc_collider_rs::{collider, hash_util, key_util};
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use hashbrown::HashSet;
 use num_bigint::BigUint;
 use secp256k1::{All, PublicKey, Secp256k1};
+use std::collections::HashSet;
 
 fn criterion_benchmark(c: &mut Criterion) {
     let secp = Secp256k1::new();
