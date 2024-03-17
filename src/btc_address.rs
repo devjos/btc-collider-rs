@@ -1,5 +1,3 @@
-use bech32::u5;
-use num_bigint::BigUint;
 use primitive_types::H160;
 
 #[derive(PartialEq)]
@@ -17,9 +15,9 @@ pub fn get_address_type(address: &str) -> BTCAddressType {
     } else if address.starts_with("3") {
         return BTCAddressType::P2SH;
     } else if address.starts_with("bc1") {
-        let (_hrp, data, _variant) = bech32::decode(address).unwrap();
-        let d: Vec<u5> = data;
-        if d.len() == 33 {
+        let (_hrp, data) = bech32::decode(address)
+            .unwrap_or_else(|_| panic!("Invalid bech32 address: {}", &address));
+        if data.len() == 20 {
             return BTCAddressType::P2WPKH;
         } else {
             return BTCAddressType::P2WSH;
@@ -30,19 +28,9 @@ pub fn get_address_type(address: &str) -> BTCAddressType {
 }
 
 pub fn p2wpkh_address_to_160_bit_hash(address: &str) -> H160 {
-    let (_hrp, data, _variant) = bech32::decode(address).unwrap();
-    let data: Vec<u5> = data;
-    if data.len() != 33 {
-        panic!("Cannot read p2wpkh address {}", address);
-    }
-    let converted: Vec<u8> = data[1..33].iter().map(|e| e.to_u8()).collect();
+    let (_hrp, data) = bech32::decode(address).expect("Invalid bech32 address");
 
-    let u8 = BigUint::from_radix_be(converted.as_slice(), 32)
-        .unwrap()
-        .to_bytes_be();
-    let mut hash: [u8; 20] = [0; 20];
-    let start_index = 20 - u8.len();
-    hash[start_index..20].copy_from_slice(&u8);
+    let hash: [u8; 20] = data[0..20].try_into().unwrap();
     H160::from(hash)
 }
 
@@ -83,6 +71,15 @@ mod tests {
     "1CUNEBjYrCn2y1SdiUMohaKUi4wpP326Lb", //key is 3
     })]
     fn can_get_hash_from_p2pk(key: u128, uncompressed_address: &str, compressed_address: &str) {
+        assert!(matches!(
+            get_address_type(&uncompressed_address),
+            BTCAddressType::P2PK
+        ));
+        assert!(matches!(
+            get_address_type(&compressed_address),
+            BTCAddressType::P2PK
+        ));
+
         let public_key =
             key_util::get_public_key_from_private_key_primitive(key, &Secp256k1::new());
         let (hash_from_uncompressed_key, hash_from_compressed_key) =
@@ -107,6 +104,8 @@ mod tests {
     "008581bccad6f717b29778f528873515a4d7dec1",
     })]
     fn can_get_hash_from_bech32(address: &str, expected_hash: &str) {
+        assert!(matches!(get_address_type(&address), BTCAddressType::P2WPKH));
+
         let actual = p2wpkh_address_to_160_bit_hash(&address);
         let expected = H160::from_str(expected_hash).unwrap();
 

@@ -164,14 +164,14 @@ mod tests {
 
         let mut prov = FileSearchSpaceProvider::new(&file);
         let search_space = prov.next();
-        assert_eq!("b-f424b", search_space.to_string());
+        assert_eq!("000000000000000000000000000000000000000000000000000000000000000b-00000000000000000000000000000000000000000000000000000000000f424b", search_space.to_string());
 
         prov.done(&search_space);
 
         let file_content = std::fs::read_to_string(&file).unwrap();
         let lines: Vec<&str> = file_content.lines().collect();
         assert_eq!(1, lines.len());
-        assert_eq!("4-f424b", *lines.get(0).unwrap());
+        assert_eq!("0000000000000000000000000000000000000000000000000000000000000004-00000000000000000000000000000000000000000000000000000000000f424b", *lines.get(0).unwrap());
     }
 
     #[test]
@@ -181,23 +181,23 @@ mod tests {
 
         let mut p = FileSearchSpaceProvider::new(file);
         let s1 = p.next();
-        assert_eq!("b-f424b", s1.to_string());
+        assert_eq!("000000000000000000000000000000000000000000000000000000000000000b-00000000000000000000000000000000000000000000000000000000000f424b", s1.to_string());
 
         let s2 = p.next();
-        assert_eq!("f424b-1e848b", s2.to_string());
+        assert_eq!("00000000000000000000000000000000000000000000000000000000000f424b-00000000000000000000000000000000000000000000000000000000001e848b", s2.to_string());
 
         p.done(&s2);
         p.write_to_file();
         let file_content = std::fs::read_to_string(&file).unwrap();
         let lines: Vec<&str> = file_content.lines().collect();
         assert_eq!(2, lines.len());
-        assert_eq!("4-b", *lines.get(0).unwrap());
-        assert_eq!("f424b-1e848b", *lines.get(1).unwrap());
+        assert_eq!("0000000000000000000000000000000000000000000000000000000000000004-000000000000000000000000000000000000000000000000000000000000000b", *lines.get(0).unwrap());
+        assert_eq!("00000000000000000000000000000000000000000000000000000000000f424b-00000000000000000000000000000000000000000000000000000000001e848b", *lines.get(1).unwrap());
 
         p.done(&s1);
         let file_content = std::fs::read_to_string(&file).unwrap();
         let lines: Vec<&str> = file_content.lines().collect();
         assert_eq!(1, lines.len());
-        assert_eq!("4-1e848b", *lines.get(0).unwrap());
+        assert_eq!("0000000000000000000000000000000000000000000000000000000000000004-00000000000000000000000000000000000000000000000000000000001e848b", *lines.get(0).unwrap());
     }
 }
