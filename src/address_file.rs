@@ -16,6 +16,7 @@ struct AddressCount {
     p2wpkh: u64,
     p2wsh: u64,
     misc: u64,
+    err: u64,
 }
 
 pub fn read_addresses_file(file_name: &str) -> HashSet<H160> {
@@ -50,6 +51,9 @@ pub fn read_addresses_file(file_name: &str) -> HashSet<H160> {
             }
             BTCAddressType::MISC => {
                 address_count.misc += 1;
+            }
+            BTCAddressType::ERR => {
+                address_count.err += 1;
             }
         };
     }

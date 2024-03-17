@@ -1,7 +1,8 @@
+use btc_collider_rs::address_file;
+use btc_collider_rs::collider::Collider;
 use btc_collider_rs::search_space::file_search_space_provider::FileSearchSpaceProvider;
 use btc_collider_rs::search_space::random_search_space_provider::RandomSearchSpaceProvider;
 use btc_collider_rs::search_space::SearchSpaceProvider;
-use btc_collider_rs::{address_file, collider};
 use chrono::{DateTime, Utc};
 use clap::Parser;
 use log::{debug, info, LevelFilter};
@@ -92,14 +93,15 @@ fn run_search(
 ) {
     let hashes = hashes.read().unwrap();
 
+    let collider = Collider {
+        addresses: &hashes,
+        secp: &secp.read().unwrap(),
+    };
+
     while continue_search.load(Ordering::Relaxed) {
         let search_space = search_space_provider.write().unwrap().next();
-        let ctx = collider::ColliderContext {
-            search_space,
-            addresses: &hashes,
-            secp: &secp.read().unwrap(),
-        };
-        let result = collider::run(ctx);
+
+        let result = collider.run(search_space);
 
         search_space_provider
             .write()
@@ -108,8 +110,14 @@ fn run_search(
 
         for found_key in result.found_keys {
             info!(
-                "Collision found. Key {} in {}",
-                found_key.to_str_radix(16),
+                "Collision found for {:?}, {}. Key {} in {}",
+                found_key.strategy,
+                if found_key.compressed {
+                    "compressed"
+                } else {
+                    "uncompressed"
+                },
+                found_key.key.to_str_radix(16),
                 result.search_space
             );
         }
