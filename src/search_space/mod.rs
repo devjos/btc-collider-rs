@@ -62,7 +62,7 @@ impl Display for SearchSpace {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "{}-{}",
+            "{:0>64}-{:0>64}",
             self.start_inclusive.to_str_radix(16),
             self.end_exclusive.to_str_radix(16)
         )
