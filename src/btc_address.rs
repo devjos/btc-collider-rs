@@ -1,3 +1,5 @@
+use crate::btc_address::BTCAddressType::ERR;
+use bech32::segwit;
 use primitive_types::H160;
 
 #[derive(PartialEq)]
@@ -7,6 +9,7 @@ pub enum BTCAddressType {
     P2WPKH,
     P2WSH,
     MISC,
+    ERR,
 }
 
 pub fn get_address_type(address: &str) -> BTCAddressType {
@@ -15,12 +18,17 @@ pub fn get_address_type(address: &str) -> BTCAddressType {
     } else if address.starts_with("3") {
         return BTCAddressType::P2SH;
     } else if address.starts_with("bc1") {
-        let (_hrp, data) = bech32::decode(address)
-            .unwrap_or_else(|_| panic!("Invalid bech32 address: {}", &address));
-        if data.len() == 20 {
-            return BTCAddressType::P2WPKH;
+        let segwit = segwit::decode(address);
+        if segwit.is_err() {
+            return ERR;
         } else {
-            return BTCAddressType::P2WSH;
+            let (_, _, data) =
+                segwit.unwrap_or_else(|_| panic!("Invalid segwit address: {}", &address));
+            return if data.len() == 20 {
+                BTCAddressType::P2WPKH
+            } else {
+                BTCAddressType::P2WSH
+            };
         }
     }
 
@@ -28,7 +36,8 @@ pub fn get_address_type(address: &str) -> BTCAddressType {
 }
 
 pub fn p2wpkh_address_to_160_bit_hash(address: &str) -> H160 {
-    let (_hrp, data) = bech32::decode(address).expect("Invalid bech32 address");
+    let (_hrp, _, data) =
+        segwit::decode(address).unwrap_or_else(|_| panic!("Invalid segwit address: {}", &address));
 
     let hash: [u8; 20] = data[0..20].try_into().unwrap();
     H160::from(hash)
@@ -82,15 +91,15 @@ mod tests {
 
         let public_key =
             key_util::get_public_key_from_private_key_primitive(key, &Secp256k1::new());
-        let (hash_from_uncompressed_key, hash_from_compressed_key) =
+        let (hash_from_compressed_key, hash_from_uncompressed_key) =
             hash_util::hash_public_key(&public_key);
-        assert_eq!(
-            hash_from_uncompressed_key,
-            p2pk_address_to_160_bit_hash(uncompressed_address)
-        );
         assert_eq!(
             hash_from_compressed_key,
             p2pk_address_to_160_bit_hash(compressed_address)
+        );
+        assert_eq!(
+            hash_from_uncompressed_key,
+            p2pk_address_to_160_bit_hash(uncompressed_address)
         );
     }
 
@@ -110,5 +119,11 @@ mod tests {
         let expected = H160::from_str(expected_hash).unwrap();
 
         assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn wrong_bech_encoding() {
+        let x = "bc1p0xlxvlhemja6c4dqv22uapctqupfhlxm9h8z3k2e72q4k9hcz7vqh2y7hd";
+        assert!(matches!(get_address_type(x), ERR));
     }
 }
