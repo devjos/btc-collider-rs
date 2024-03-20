@@ -148,7 +148,7 @@ mod tests {
 
     #[test]
     fn can_read_from_file() {
-        let mut prov = FileSearchSpaceProvider::new("searchspace/space.existing.txt");
+        let mut prov = FileSearchSpaceProvider::new("test/space.existing.txt");
 
         let search_space = prov.next();
         assert_eq!(10, search_space.start_inclusive.to_u64().unwrap());
@@ -157,7 +157,7 @@ mod tests {
 
     #[test]
     fn can_update() {
-        let file = "searchspace/space.update.txt";
+        let file = "test/space.update.txt";
 
         let mut f = File::create(&file).unwrap();
         f.write("4-b".as_bytes()).unwrap();
@@ -176,7 +176,7 @@ mod tests {
 
     #[test]
     fn can_correctly_merge() {
-        let file = "searchspace/space.merge.txt";
+        let file = "test/space.merge.txt";
         std::fs::write(&file, "4-b").unwrap();
 
         let mut p = FileSearchSpaceProvider::new(file);
