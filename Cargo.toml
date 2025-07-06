@@ -9,7 +9,7 @@ bs58 = "0.5"
 chrono = "0.4"
 clap = { version = "4.3", features = ["derive"] }
 flate2 = "1.0"
-hex-literal = "0.4"
+hex-literal = "1.0"
 log = "0.4"
 num-bigint = { version = "0.4", features = ["rand"] }
 num-traits = "0.2"
@@ -17,13 +17,13 @@ num_cpus = "1.16"
 primitive-types = "0.13"
 rand = "0.8"
 ripemd = "0.1"
-secp256k1 = "0.30"
+secp256k1 = "0.31"
 sha2 = "0.10"
 simplelog = "0.12"
 
 [dev-dependencies]
 parameterized-macro = "2.0"
-criterion = "0.5"
+criterion = "0.6"
 
 [[bench]]
 name = "collider"

@@ -16,7 +16,7 @@ pub fn get_public_key_from_private_key_vec(key: Vec<u8>, secp: &Secp256k1<All>) 
 }
 
 pub fn get_public_key_from_private_key(key: [u8; 32], secp: &Secp256k1<All>) -> PublicKey {
-    let secret_key = SecretKey::from_slice(&key).expect("32 bytes, within curve order");
+    let secret_key = SecretKey::from_byte_array(key).expect("32 bytes, within curve order");
     PublicKey::from_secret_key(&secp, &secret_key)
 }
 
