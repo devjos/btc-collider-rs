@@ -3,16 +3,17 @@ use crate::collider::PointStrategy::{
     OriginalPointLambdaSquaredNegated, OriginalPointNegated,
 };
 use crate::search_space::SearchSpace;
+use crate::wif::private_key_to_wif;
 use crate::{hash_util, key_util};
 use hex_literal::hex;
 use log::info;
 use num_bigint::BigUint;
-use num_traits::{CheckedMul, Euclid, One, ToPrimitive};
+use num_traits::{Euclid, One, ToPrimitive};
 use primitive_types::H160;
 use secp256k1::{All, PublicKey, Secp256k1};
-use std::cell::OnceCell;
+use std::cell::LazyCell;
 use std::collections::HashSet;
-use std::ops::{Add, Sub};
+use std::ops::{Add, Mul, Sub};
 use std::time::SystemTime;
 
 pub struct Collider<'a> {
@@ -48,14 +49,21 @@ pub struct ColliderResult {
 }
 
 impl Collider<'_> {
-    const BETA: OnceCell<BigUint> = OnceCell::new();
-    const P: OnceCell<BigUint> = OnceCell::new();
+    const ONE: LazyCell<BigUint> = LazyCell::new(|| BigUint::one());
+    const BETA: LazyCell<BigUint> = LazyCell::new(|| {
+        BigUint::from_bytes_be(&hex!(
+            "7ae96a2b657c07106e64479eac3434e99cf0497512f58995c1396c28719501ee"
+        ))
+    });
+    const P: LazyCell<BigUint> = LazyCell::new(|| {
+        BigUint::from_bytes_be(&hex!(
+            "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F"
+        ))
+    });
 
     pub fn run(&self, search_space: SearchSpace) -> ColliderResult {
         let mut current_key = search_space.start_inclusive.clone();
         let mut found_keys: Vec<FoundKey> = Vec::new();
-
-        let one = BigUint::one();
 
         let start_time = SystemTime::now();
         while current_key.le(&search_space.end_exclusive) {
@@ -117,7 +125,7 @@ impl Collider<'_> {
                 &mut found_keys,
             );
 
-            current_key = current_key.add(&one);
+            current_key = current_key.add(&*Self::ONE);
         }
         let end_time = SystemTime::now();
         let time_taken = end_time.duration_since(start_time).unwrap().as_millis() + 1;
@@ -175,33 +183,21 @@ impl Collider<'_> {
 
     fn log_collision(found_key: &FoundKey) {
         info!(
-            "Collision found for {:?}, {}. Key {}",
+            "Collision found for {:?}, {}. Key {}. WIF {}",
             found_key.strategy,
             if found_key.compressed {
                 "compressed"
             } else {
                 "uncompressed"
             },
-            found_key.key.to_str_radix(16)
+            found_key.key.to_str_radix(16),
+            private_key_to_wif(&found_key.key, found_key.compressed)
         )
     }
 
     fn calc_public_key_lambda(&self, public_key: &PublicKey) -> PublicKey {
-        let beta_binding = Self::BETA;
-        let beta = beta_binding.get_or_init(|| {
-            BigUint::from_bytes_be(&hex!(
-                "7ae96a2b657c07106e64479eac3434e99cf0497512f58995c1396c28719501ee"
-            ))
-        });
-        let p_binding = Self::P;
-        let p = p_binding.get_or_init(|| {
-            BigUint::from_bytes_be(&hex!(
-                "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F"
-            ))
-        });
-
         let x = BigUint::from_bytes_be(&public_key.serialize()[1..33]);
-        let (_div, rem) = x.checked_mul(&beta).unwrap().div_rem_euclid(&p);
+        let (_div, rem) = x.mul(&*Self::BETA).div_rem_euclid(&*Self::P);
         let negated_x = rem.to_bytes_be();
         let mut compressed: [u8; 33] = [0; 33];
         compressed[0] = public_key.serialize()[0];
@@ -250,6 +246,29 @@ mod tests {
                 result.found_keys.get(i).unwrap().key.to_u32().unwrap()
             )
         }
+    }
+
+    #[test]
+    fn puzzle_transaction_69() {
+        let addresses = read_addresses_file("addresses/puzzle_69.txt.gz");
+        assert_eq!(1, addresses.len());
+
+        let start_inclusive: BigUint = BigUint::from_str_radix("101d83275fb2bc7e00", 16).unwrap();
+        let end_exclusive = start_inclusive.clone().add(BigUint::from(1024usize));
+
+        let collider = Collider {
+            addresses: &addresses,
+            secp: &Secp256k1::new(),
+        };
+
+        let result = collider.run(SearchSpace {
+            start_inclusive,
+            end_exclusive,
+        });
+
+        assert_eq!(1, result.found_keys.len());
+        let expected_key = BigUint::from_str_radix("101d83275fb2bc7e0c", 16).unwrap();
+        assert_eq!(expected_key, result.found_keys.get(0).unwrap().key);
     }
 
     #[parameterized( wif = {
