@@ -1,2 +1,2 @@
 #!/bin/sh
-grep -ri "[1-9] collisions" log/ | sort
+grep -ri "Collision found" log/ | sort
