@@ -1,8 +1,10 @@
 use btc_collider_rs::address_file;
 use btc_collider_rs::collider::Collider;
 use btc_collider_rs::search_space::file_search_space_provider::FileSearchSpaceProvider;
+use btc_collider_rs::search_space::puzzle_search_space_provider::PuzzleSearchSpaceProvider;
 use btc_collider_rs::search_space::random_search_space_provider::RandomSearchSpaceProvider;
 use btc_collider_rs::search_space::SearchSpaceProvider;
+use btc_collider_rs::wif::private_key_to_wif;
 use chrono::{DateTime, Utc};
 use clap::Parser;
 use log::{debug, info, LevelFilter};
@@ -23,6 +25,10 @@ struct Args {
     #[clap(short, long)]
     random: bool,
 
+    /// Search puzzle
+    #[clap(short, long)]
+    puzzle: Option<usize>,
+
     /// Number of threads
     #[clap(long, default_value_t = num_cpus::get())]
     threads: usize,
@@ -37,17 +43,24 @@ fn main() {
 
     let args = Args::parse();
     let random = args.random;
+    let puzzle = args.puzzle;
 
     info!("Start btc-collider-rs");
+
+    let search_space_provider: Box<dyn SearchSpaceProvider> = if random {
+        info!("Mode random");
+        Box::new(RandomSearchSpaceProvider::new())
+    } else if puzzle.is_some() {
+        info!("Mode puzzle #{}", puzzle.unwrap());
+        Box::new(PuzzleSearchSpaceProvider::new(puzzle.unwrap()))
+    } else {
+        info!("Mode default");
+        Box::new(FileSearchSpaceProvider::new("searchspace/done.txt"))
+    };
 
     let hashes = address_file::read_addresses_file("addresses/latest.txt.gz");
     let hashes = Arc::new(RwLock::new(hashes));
     let secp = Arc::new(RwLock::new(Secp256k1::new()));
-    let search_space_provider: Box<dyn SearchSpaceProvider> = if random {
-        Box::new(RandomSearchSpaceProvider::new())
-    } else {
-        Box::new(FileSearchSpaceProvider::new("searchspace/done.txt"))
-    };
 
     let search_space_provider = Arc::new(RwLock::new(search_space_provider));
     let mut thread_handles = Vec::new();
@@ -110,7 +123,7 @@ fn run_search(
 
         for found_key in result.found_keys {
             info!(
-                "Collision found for {:?}, {}. Key {} in {}",
+                "Collision found for {:?}, {}. Key {} in {}. WIF {}",
                 found_key.strategy,
                 if found_key.compressed {
                     "compressed"
@@ -118,7 +131,8 @@ fn run_search(
                     "uncompressed"
                 },
                 found_key.key.to_str_radix(16),
-                result.search_space
+                result.search_space,
+                private_key_to_wif(&found_key.key, found_key.compressed)
             );
         }
     }

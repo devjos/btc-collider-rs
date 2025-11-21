@@ -1,4 +1,5 @@
 pub mod file_search_space_provider;
+pub mod puzzle_search_space_provider;
 pub mod random_search_space_provider;
 
 use num_bigint::BigUint;
