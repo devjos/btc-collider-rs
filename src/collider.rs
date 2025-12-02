@@ -10,7 +10,7 @@ use log::info;
 use num_bigint::BigUint;
 use num_traits::{Euclid, One, ToPrimitive};
 use primitive_types::H160;
-use secp256k1::{All, PublicKey, Secp256k1};
+use secp256k1::{All, PublicKey, Scalar, Secp256k1};
 use std::cell::LazyCell;
 use std::collections::HashSet;
 use std::ops::{Add, Mul, Sub};
@@ -66,12 +66,9 @@ impl Collider<'_> {
         let mut found_keys: Vec<FoundKey> = Vec::new();
 
         let start_time = SystemTime::now();
+        let mut public_key_original =
+            key_util::get_public_key_from_private_key_vec(current_key.to_bytes_be(), &self.secp);
         while current_key.le(&search_space.end_exclusive) {
-            let public_key_original = key_util::get_public_key_from_private_key_vec(
-                current_key.to_bytes_be(),
-                &self.secp,
-            );
-
             //OriginalPoint
             self.search_public_key(
                 &current_key,
@@ -125,6 +122,9 @@ impl Collider<'_> {
                 &mut found_keys,
             );
 
+            public_key_original = public_key_original
+                .add_exp_tweak(&self.secp, &Scalar::ONE)
+                .unwrap();
             current_key = current_key.add(&*Self::ONE);
         }
         let end_time = SystemTime::now();
