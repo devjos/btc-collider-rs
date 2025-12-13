@@ -1,7 +1,7 @@
 use btc_collider_rs::collider::Collider;
 use btc_collider_rs::search_space::SearchSpace;
 use btc_collider_rs::{hash_util, key_util};
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use criterion::{Criterion, black_box, criterion_group, criterion_main};
 use num_bigint::BigUint;
 use secp256k1::Secp256k1;
 use std::collections::HashSet;

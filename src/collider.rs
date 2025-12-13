@@ -405,16 +405,20 @@ mod tests {
             OriginalPointLambdaSquared,
             OriginalPointLambdaSquaredNegated,
         ] {
-            assert!(result
-                .found_keys
-                .iter()
-                .find(|a| a.strategy == strategy && a.compressed)
-                .is_some());
-            assert!(result
-                .found_keys
-                .iter()
-                .find(|a| a.strategy == strategy && !a.compressed)
-                .is_some());
+            assert!(
+                result
+                    .found_keys
+                    .iter()
+                    .find(|a| a.strategy == strategy && a.compressed)
+                    .is_some()
+            );
+            assert!(
+                result
+                    .found_keys
+                    .iter()
+                    .find(|a| a.strategy == strategy && !a.compressed)
+                    .is_some()
+            );
         }
 
         assert_eq!(12, result.found_keys.len());

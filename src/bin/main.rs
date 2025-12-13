@@ -1,13 +1,13 @@
 use btc_collider_rs::address_file;
 use btc_collider_rs::collider::Collider;
+use btc_collider_rs::search_space::SearchSpaceProvider;
 use btc_collider_rs::search_space::file_search_space_provider::FileSearchSpaceProvider;
 use btc_collider_rs::search_space::puzzle_search_space_provider::PuzzleSearchSpaceProvider;
 use btc_collider_rs::search_space::random_search_space_provider::RandomSearchSpaceProvider;
-use btc_collider_rs::search_space::SearchSpaceProvider;
 use btc_collider_rs::wif::private_key_to_wif;
 use chrono::{DateTime, Utc};
 use clap::Parser;
-use log::{debug, info, LevelFilter};
+use log::{LevelFilter, debug, info};
 use primitive_types::H160;
 use secp256k1::{All, Secp256k1};
 use simplelog::{ColorChoice, CombinedLogger, Config, TermLogger, TerminalMode, WriteLogger};
