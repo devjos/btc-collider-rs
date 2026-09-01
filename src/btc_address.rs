@@ -57,7 +57,6 @@ mod tests {
     use super::*;
     use crate::{hash_util, key_util};
     use parameterized_macro::parameterized;
-    use secp256k1::Secp256k1;
     use std::str::FromStr;
 
     #[test]
@@ -89,8 +88,7 @@ mod tests {
             BTCAddressType::P2PK
         ));
 
-        let public_key =
-            key_util::get_public_key_from_private_key_primitive(key, &Secp256k1::new());
+        let public_key = key_util::get_public_key_from_private_key_primitive(key);
         let (hash_from_compressed_key, hash_from_uncompressed_key) =
             hash_util::hash_public_key(&public_key);
         assert_eq!(

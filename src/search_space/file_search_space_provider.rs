@@ -1,7 +1,7 @@
 use super::SearchSpace;
 use crate::search_space::SearchSpaceProvider;
 use log::{debug, info};
-use num_bigint::{BigUint, RandBigInt};
+use num_bigint::{BigRng010, BigUint};
 use std::collections::BTreeSet;
 use std::fs::File;
 use std::io;
@@ -112,8 +112,8 @@ impl SearchSpaceProvider for FileSearchSpaceProvider {
             let first = self.done.first().unwrap();
             start_inclusive = first.end_exclusive.clone();
         } else {
-            let mut rng = rand::thread_rng();
-            start_inclusive = rng.gen_biguint(256);
+            let mut rng = rand::rng();
+            start_inclusive = BigRng010::random_biguint(&mut rng, 256);
         }
 
         let search_space = SearchSpace {
