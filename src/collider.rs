@@ -11,9 +11,9 @@ use num_bigint::BigUint;
 use num_traits::{Euclid, One, ToPrimitive};
 use primitive_types::H160;
 use secp256k1::{All, PublicKey, Scalar, Secp256k1};
-use std::cell::LazyCell;
 use std::collections::HashSet;
 use std::ops::{Add, Mul, Sub};
+use std::sync::LazyLock;
 use std::time::SystemTime;
 
 pub struct Collider<'a> {
@@ -48,26 +48,25 @@ pub struct ColliderResult {
     pub found_keys: Vec<FoundKey>,
 }
 
+static ONE: LazyLock<BigUint> = LazyLock::new(|| BigUint::one());
+const BETA: LazyLock<BigUint> = LazyLock::new(|| {
+    BigUint::from_bytes_be(&hex!(
+        "7ae96a2b657c07106e64479eac3434e99cf0497512f58995c1396c28719501ee"
+    ))
+});
+const P: LazyLock<BigUint> = LazyLock::new(|| {
+    BigUint::from_bytes_be(&hex!(
+        "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F"
+    ))
+});
 impl Collider<'_> {
-    const ONE: LazyCell<BigUint> = LazyCell::new(|| BigUint::one());
-    const BETA: LazyCell<BigUint> = LazyCell::new(|| {
-        BigUint::from_bytes_be(&hex!(
-            "7ae96a2b657c07106e64479eac3434e99cf0497512f58995c1396c28719501ee"
-        ))
-    });
-    const P: LazyCell<BigUint> = LazyCell::new(|| {
-        BigUint::from_bytes_be(&hex!(
-            "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F"
-        ))
-    });
-
     pub fn run(&self, search_space: SearchSpace) -> ColliderResult {
         let mut current_key = search_space.start_inclusive.clone();
         let mut found_keys: Vec<FoundKey> = Vec::new();
 
         let start_time = SystemTime::now();
         let mut public_key_original =
-            key_util::get_public_key_from_private_key_vec(current_key.to_bytes_be(), &self.secp);
+            key_util::get_public_key_from_private_key_vec(current_key.to_bytes_be());
         while current_key.le(&search_space.end_exclusive) {
             //OriginalPoint
             self.search_public_key(
@@ -78,7 +77,7 @@ impl Collider<'_> {
             );
 
             //OriginalPointNegated
-            let public_key_negated = public_key_original.negate(&self.secp);
+            let public_key_negated = public_key_original.negate();
             self.search_public_key(
                 &current_key,
                 &public_key_negated,
@@ -96,7 +95,7 @@ impl Collider<'_> {
             );
 
             //OriginalPointLambdaNegated
-            let public_key_lambda_negated = public_key_original.negate(&self.secp);
+            let public_key_lambda_negated = public_key_lambda.negate();
             self.search_public_key(
                 &current_key,
                 &public_key_lambda_negated,
@@ -114,7 +113,7 @@ impl Collider<'_> {
             );
 
             //OriginalPointLambdaSquaredNegated
-            let public_key_lambda_squared_negated = public_key_lambda_squared.negate(&self.secp);
+            let public_key_lambda_squared_negated = public_key_lambda_squared.negate();
             self.search_public_key(
                 &current_key,
                 &public_key_lambda_squared_negated,
@@ -122,10 +121,8 @@ impl Collider<'_> {
                 &mut found_keys,
             );
 
-            public_key_original = public_key_original
-                .add_exp_tweak(&self.secp, &Scalar::ONE)
-                .unwrap();
-            current_key = current_key.add(&*Self::ONE);
+            public_key_original = public_key_original.add_exp_tweak(&Scalar::ONE).unwrap();
+            current_key = current_key.add(&*ONE);
         }
         let end_time = SystemTime::now();
         let time_taken = end_time.duration_since(start_time).unwrap().as_millis() + 1;
@@ -197,7 +194,7 @@ impl Collider<'_> {
 
     fn calc_public_key_lambda(&self, public_key: &PublicKey) -> PublicKey {
         let x = BigUint::from_bytes_be(&public_key.serialize()[1..33]);
-        let (_div, rem) = x.mul(&*Self::BETA).div_rem_euclid(&*Self::P);
+        let (_div, rem) = x.mul(&*BETA).div_rem_euclid(&*P);
         let negated_x = rem.to_bytes_be();
         let mut compressed: [u8; 33] = [0; 33];
         compressed[0] = public_key.serialize()[0];
